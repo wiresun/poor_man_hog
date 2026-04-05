@@ -1,0 +1,8 @@
+name: poor_man_hog_env
+channels:
+  - defaults
+dependencies:
+  - python=3.13.9
+  - numpy=2.3.4
+  - pillow=12.0.0
+  - scikit-image=0.25.2
