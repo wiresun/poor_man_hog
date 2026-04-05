@@ -10,16 +10,20 @@ I want to get _somewhere_ and had to write _something_.
 
 
 # Running
-Make sure python has access to `numpy`, `pillow` and `scikit-image` packages. Then simply run
+
+Make sure python has access to the `numpy`, `pillow` and `scikit-image` packages.
+Then simply run the following command and expect to witness heroic stature (see Picture section below): 
 
 ```bash
-python main.py
+python hog.py
 ```
 
-To compare our feature descriptor to scikit-image's, run 
+To compare our feature descriptor to the one produced by scikit-image
+[hog](https://scikit-image.org/docs/stable/api/skimage.feature.html#skimage.feature.hog)
+run
 
 ```bash
-python test.py
+python test_hog.py
 ```
 
 A `shell.nix` is provided for the enlightened. 

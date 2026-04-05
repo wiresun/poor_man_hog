@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Histogram of oriented gradients
 """
@@ -5,13 +6,15 @@ Histogram of oriented gradients
 from typing import cast
 from PIL import Image, ImageDraw
 import numpy as np
+import argparse
 
 # [Height, Width]
 type Size = tuple[int, int]
 
 type ArrayU8 = np.typing.NDArray[np.uint8]
 
-type ArrayF64= np.typing.NDArray[np.float64]
+type ArrayF64 = np.typing.NDArray[np.float64]
+
 
 def poor_man_hog(
     image: ArrayU8,
@@ -21,11 +24,11 @@ def poor_man_hog(
     bilinear_binning: bool,
 ):
     """
-    Compute HOG feature descriptor. 
+    Compute HOG feature descriptor.
 
-    image: 2-dimensional array of unsigned 8-bit integers. 
+    image: 2-dimensional array of unsigned 8-bit integers.
     cell_size: (height, width) of cells in pixels
-    block_size: (height, width) of blocks in cells. 
+    block_size: (height, width) of blocks in cells.
     orientations: the number of orientation bins in the histograms
     bilinear_binning: when true, use bilinearly interpolated bin assignment.
                       Otherwise, use single bin assignments
@@ -66,7 +69,7 @@ def grayscale(arr: ArrayU8) -> ArrayU8:
 
     weights = np.array([0.299, 0.587, 0.114])
     float_result = cast(np.typing.NDArray[np.float32], arr.dot(weights))
-    result = float_result.astype(np.uint8, copy=False) 
+    result = float_result.astype(np.uint8, copy=False)
 
     return result
 
@@ -82,8 +85,8 @@ def nn_scale(arr: ArrayU8, height: int, width: int) -> ArrayU8:
     row_scale = orig_h / height
     col_scale = orig_w / width
 
-    rows = np.uint16(row_scale * np.arange(height))
-    cols = np.uint16(col_scale * np.arange(width))
+    rows = np.uint(row_scale * np.arange(height))
+    cols = np.uint(col_scale * np.arange(width))
 
     scaled_array = arr[np.ix_(rows, cols)]
 
@@ -263,8 +266,8 @@ def visualize_hog(
     """
     Reconstruct image from histograms over cells.
 
-    For each histograms, and for ach bin therein, draw a line perpendicular to
-    the bin's orientation. Higher magnitudes give brighter lines.
+    For each histogram and each bin therein, draw a line perpendicular to
+    the bin's orientation whose brightness depends on magnitude.
     """
     hog_image = Image.new("RGB", (image_size[1], image_size[0]), color="black")
     draw = ImageDraw.Draw(hog_image)
@@ -311,13 +314,26 @@ def visualize_hog(
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="hog.py", description="Compute HOG feature descriptor for image"
+    )
+    _ = parser.add_argument("--image", help="path to image file", default="arnold.jpg")
+    _ = parser.add_argument(
+        "--print-fd",
+        action="store_true",
+        help="print feature descriptor instead of showing a picture",
+    )
+    args = parser.parse_args()
+    image_path = cast(str, args.image)
+    print_fd = cast(bool, args.print_fd)
+
     width = 128
     height = 256
     cell_size = (8, 8)
     block_size = (2, 2)
     number_of_bins = 9
 
-    image = Image.open("arnold.jpg")
+    image = Image.open(image_path)
     image = np.array(image)
     image = nn_scale(image, height, width)
     image = grayscale(image).astype(np.uint8)
@@ -330,4 +346,11 @@ if __name__ == "__main__":
         bilinear_binning=True,
     )
 
-    _ = poor_hog_image.show()
+    if print_fd:
+        import sys
+
+        np.set_printoptions(threshold=sys.maxsize)
+
+        print(poor_hog.ravel())
+    else:
+        _ = poor_hog_image.show()

@@ -3,7 +3,7 @@ import numpy as np
 import skimage as ski
 from PIL import Image
 
-import main as m
+import hog
 
 width = 128
 height = 256
@@ -13,10 +13,10 @@ number_of_bins = 9
 
 im = Image.open("arnold.jpg")
 image = np.array(im)
-image = m.nn_scale(image, height, width)
-image = m.grayscale(image).astype(np.uint8)
+image = hog.nn_scale(image, height, width)
+image = hog.grayscale(image).astype(np.uint8)
 
-poor_hog, _ = m.poor_man_hog(
+poor_hog, _ = hog.poor_man_hog(
     image,
     cell_size=cell_size,
     block_size=block_size,
@@ -34,7 +34,7 @@ ski_hog = ski.feature.hog(
     visualize=False,
 )
 
-hog_delta = cast(m.ArrayF64, poor_hog - ski_hog)
+hog_delta = cast(hog.ArrayF64, poor_hog - ski_hog)
 delta = np.linalg.norm(hog_delta)
 if np.isclose(poor_hog, ski_hog, rtol=1.0e-5, atol=1.0e-5).all():
     print(f"Test succeed: feature discriptors are similar (delta = {delta})")
