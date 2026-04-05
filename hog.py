@@ -179,7 +179,9 @@ def collect_histograms(
     bilinear_binning: bool,
 ) -> ArrayF64:
     """
-    Collect gradient angle histograms over cells, weighted by gradient magnitude
+    Collect gradient angle histograms over cells, weighted by gradient magnitude.
+
+    Return array of histograms by cell grid coordinates [cell_row, cell_col, histogram]
     """
     assert grad_row.shape == grad_col.shape
     assert grad_row.ndim == 2
@@ -275,9 +277,9 @@ def visualize_hog(
     cell_h, cell_w = cell_size
     cell_grid_h, cell_grid_w = cast(tuple[int, int], histograms.shape[0:2])
 
-    for row in range(cell_grid_h):
-        for col in range(cell_grid_w):
-            histogram = histograms[row, col, :]
+    for cell_r in range(cell_grid_h):
+        for cell_c in range(cell_grid_w):
+            histogram = histograms[cell_r, cell_c, :]
             bin_width = 180.0 // orientations
 
             cell_lines: list[
@@ -285,19 +287,18 @@ def visualize_hog(
             ] = []
 
             for bin in range(orientations):
-                cy = col * cell_w + cell_w // 2
-                cx = row * cell_h + cell_h // 2
+                cell_centre_col = cell_c * cell_w + cell_w // 2
+                cell_centre_row = cell_r * cell_h + cell_h // 2
 
                 angle = bin * bin_width + 10.0 + 90.0
                 angle = cast(float, np.deg2rad(angle % 180.0))
 
-                dy = cast(float, 0.3 * cell_h * np.cos(angle))
-                dx = cast(float, 0.3 * cell_w * np.sin(angle))
-
-                start = (cy - dy, cx - dx)
-                end = (cy + dy, cx + dx)
+                dr = cast(float, 0.3 * cell_h * np.sin(angle))
+                dc = cast(float, 0.3 * cell_w * np.cos(angle))
 
                 mag = cast(float, histogram[bin])
+                start = (cell_centre_col - dc, cell_centre_row - dr)
+                end = (cell_centre_col + dc, cell_centre_row + dr)
 
                 cell_lines.append((mag, start, end))
 
